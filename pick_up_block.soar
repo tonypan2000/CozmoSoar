@@ -1,0 +1,91 @@
+sp {propose*initialize-cozmo
+	(state <s> ^superstate nil
+			-^name)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name initialize-cozmo)
+}
+
+sp {apply*initialize-cozmo
+	(state <s> ^operator <op>
+			^io.output-link <out>)
+	(<op> ^name initialize-cozmo)
+-->
+	(<s> ^name cozmo)
+	(<out> ^move-lift.height 0
+		^move-head.angle 0)
+}
+
+sp {bot*propose*find-block
+	(state <s> ^name cozmo
+		^io.input-link <in>
+		^io.output-link <out>)
+	(<in> -^object)
+-->
+	(<s> ^name cozmo
+			^operator <op> + =)
+	(<out> ^turn-in-place <tip>)
+	(<tip> ^angle 15
+		^speed 45)
+}
+
+sp {bot*propose*pick-up
+	(state <s> ^name cozmo
+				^operator <op>
+				^io.input-link <in>
+				^io.input-link.object.object-id <id>
+				^io.output-link <out>)
+	(<in> ^carrying-block 0)
+-->
+	(<s> ^name cozmo
+			^operator <op> + =)
+	(<out> ^pick-up-object <puo>)
+	(<puo> ^object-id <id>)
+}
+
+# if holding a block, put it down, works perfectly
+#sp {bot*propose*drop
+#	(<s> ^name cozmo
+#			^io.input-link <in>
+#			^io.output-link <out>)
+#	(<in> ^carrying-block 1)
+#-->
+#	(<s> ^name cozmo)
+#	(<out> ^place-object-down <pod>)
+#}
+
+# if holding a block, set it on top of another block, don't know what's wrong
+#sp {bot*propose*stack
+#	(<s> ^name cozmo
+#		^io.input-link <in>
+#		^io.input-link.object.object-id <id>
+#		 ^io.output-link <out>)
+#	(<in> ^carrying-block 1)
+#-->
+#	(<s> ^name cozmo
+#			^operator <op> + =)
+#	(<out> ^place-object-on <poo>)
+#	(<poo> ^object-id 1)
+#}
+
+# if holding a block, turn it red, does not work either, suspecting something wrong with object ID
+sp {bot*propose*color
+	(<s> ^name cozmo
+			^io.input-link <in>)
+	(<in> ^carrying-block 1)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name color)
+}
+
+sp {bot*apply*color
+	(state <s> ^operator <op>
+			^io.output-link <out>
+			^io.input-link.carrying-object-id <id>)
+	(<op> ^name color)
+-->
+	(<s> ^name cozmo)
+	(<out> ^change-block-color <cbc>)
+	(<cbc> ^object-id 0
+			^color red)
+}

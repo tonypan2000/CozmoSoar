@@ -1,0 +1,48 @@
+sp {propose*initialize-cozmo
+	(state <s> ^superstate nil
+			-^name)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name initialize-cozmo)
+}
+
+sp {apply*initialize-cozmo
+	(state <s> ^operator <op>
+			^io.output-link <out>)
+	(<op> ^name initialize-cozmo)
+-->
+	(<s> ^name cozmo)
+	(<out> ^move-lift.height 0
+		^move-head.angle 0)
+}
+
+sp {bot*propose*find-block
+	(state <s> ^name cozmo
+		^io.input-link <in>
+		 ^io.output-link <out>)
+	(<in> -^object)
+-->
+	(<s> ^name cozmo)
+	(<out> ^turn-in-place <tip>)
+	(<tip> ^angle 15
+		^speed 30)
+}
+
+sp {bot*propose*turn-red
+	(state <s> ^name cozmo
+		^io.input-link <in>)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name turn-red)
+}
+
+sp {bot*apply*turn-red
+	(<s> ^name cozmo
+		^io.input-link.object.object-id <id>
+		 ^io.output-link <out>)
+-->
+	(<s> ^name cozmo)
+	(<out> ^change-block-color <cbc>)
+	(<cbc> ^object-id <id>
+		^color red)
+}

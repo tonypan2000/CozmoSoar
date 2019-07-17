@@ -1,0 +1,84 @@
+rl --set learning on
+
+sp {propose*initialize-rl-bot
+	(state <s> ^superstate nil
+				-^name)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name initialize-rl-bot)
+}
+
+sp {apply*initialize-rl-bot
+	(state <s> ^operator <op>
+				^io.output-link <out>)
+	(<op> ^name initialize-rl-bot)
+-->
+	(<s> ^name cozmo
+			^task <t1> <t2>)
+	(<t1> ^name drive ^reward 1)
+	(<t2> ^name drop ^reward -1)
+	(<out> ^move-lift.height 0
+			^move-head.angle 0)
+}
+
+# let cozmo pick up a block now
+# after picking the block, propose two parallel operators one to put it on top of another block, the other to lower the lift
+# puting on top of another object gets +1 on reward link, lowering lift gets -1
+
+sp {bot*propose*find-block
+	(state <s> ^name cozmo
+		^io.input-link <in>
+		 ^io.output-link <out>)
+	(<in> -^object)
+-->
+	(<s> ^name cozmo)
+	(<out> ^turn-in-place <tip>)
+	(<tip> ^angle 15
+		^speed 45)
+}
+
+sp {bot*propose*pick-up
+	(state <s> ^name cozmo
+		^io.input-link <in>
+		^io.input-link.object.object-id <id>
+		^io.output-link <out>)
+	(<in> ^carrying-block 0)
+-->
+	(<s> ^name cozmo)
+	(<out> ^pick-up-object <puo>)
+	(<puo> ^object-id <id>)
+}
+
+# if holding a block, put it down
+sp {bot*propose*drop
+	(<s> ^name cozmo
+			^io.input-link <in>
+			^io.output-link <out>)
+	(<in> ^carrying-block 1)
+-->
+	(<s> ^operator <op> = 0)
+	(<out> ^place-object-down <pod>)
+}
+	
+# if holding a block, drive forward
+sp {bot*propose*drive
+	(<s> ^name cozmo
+			^io.input-link <in>
+			^io.output-link <out>)
+	(<in> ^carrying-block 1)
+-->
+	(<s> ^operator <op> = 0)
+	(<out> ^drive-forward <df>)
+	(<df> ^distance 75
+			^speed 100)
+}
+
+
+# rewards link
+sp {RL*elaborate*state
+	(state <s> ^name cozmo
+				^reward-link <rl>
+				^task <t-name>)
+-->
+	(<rl> ^reward.value <t-name>)
+}
