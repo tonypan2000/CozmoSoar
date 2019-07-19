@@ -1,4 +1,3 @@
-from threading import Thread
 import process_markers
 import numpy as np
 import math
@@ -7,9 +6,9 @@ import math
 class CameraLocalizer:
 
     def __init__(self):
-        # Spin up a thread to periodically update the transform
-        Thread(target=self._transform, args=()).start()
         self.localizer = process_markers.Localizer()
+        self.camera_coord = None
+        self.camera_angle = None
         self.cozmo_origin_location = 0
         self.cozmo_origin_rotation = 0
         self.change_of_bases_r_to_s = np.zeros([3, 3])
@@ -23,14 +22,13 @@ class CameraLocalizer:
         self.change_of_bases_r_to_s = np.transpose(np.array([[a, b, 0], [-b, a, 0], [0, 0, 1]]))
         self.change_of_bases_s_to_r = np.inv(self.change_of_bases_r_to_s)
 
-        return
     # transform
     def transform(self):
         while True:
-            camera_coord, camera_angle = self.localizer.pose_from_camera()
-            #cozmo_pose = self.get_cozmo_pose(self, camera_coord, camera_angle)
-            #world_pose = self.get_world_pose(self, cozmo_pose)
-            #self.update_robot_pose(self, world_pose)
+            self.camera_coord, self.camera_angle = self.localizer.pose_from_camera()
+            # cozmo_pose = self.get_cozmo_pose(self, world_pose)
+            # world_pose = self.get_world_pose(self, cozmo_pose)
+            # self.update_robot_pose(self, world_pose)
 
     # pose: xyzrpy
     def update_robot_pose(self, cozmo_pose, world_pose):
@@ -42,8 +40,6 @@ class CameraLocalizer:
         world_to_cozmo = np.array([world_pose[0], world_pose[1], world_pose[2]])
 
         self.cozmo_origin_location = world_to_cozmo - origin_to_cozmo
-
-        return
 
     # cozmo_pose: xyzrpy
     def get_world_pose(self, cozmo_pose):
