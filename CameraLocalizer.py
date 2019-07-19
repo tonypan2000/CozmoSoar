@@ -8,14 +8,15 @@ class CameraLocalizer:
 
     def __init__(self):
         self.localizer = process_markers.Localizer()
-        self.world_position = None
+        self.world_position = np.array([0, 0, 0, 0, 0, 0])
         self.cozmo_origin_location = 0
         self.cozmo_origin_rotation = 0
         self.change_of_bases_r_to_s = np.zeros([3, 3])
         self.change_of_bases_s_to_r = np.zeros([3, 3])
-        # TODO: update world_position here so that we can calculate change of basis and update transform immediately
+        # TODO: update world_position here so that we can update transform and calculate change of basis immediately
+        # self.recalculate_transform(np.array([0,0,0,0,0,0]), self.world_position) # maybe need to get cozmo_pose not zeros
         # self.update_change_of_basis()
-        # self.recalculate_transform(np.array([0,0,0,0,0,0]), self.world_position)
+
 
     # start a thread for continuously processing markers
     def start(self):
