@@ -1,12 +1,9 @@
-from threading import Thread
 import process_markers
 
 
 class CameraLocalizer:
 
     def __init__(self):
-        # Spin up a thread to periodically update the transform
-        Thread(target=self._transform, args=()).start()
         self.localizer = process_markers.Localizer()
 
     # transform
@@ -35,4 +32,5 @@ class CameraLocalizer:
         pass
 
 
-
+test = CameraLocalizer()
+test.transform()
