@@ -8,7 +8,7 @@ class CameraLocalizer:
 
     def __init__(self):
         self.localizer = process_markers.Localizer()
-        self.world_position = []
+        self.world_position = None
         self.cozmo_origin_location = 0
         self.cozmo_origin_rotation = 0
         self.change_of_bases_r_to_s = np.zeros([3, 3])
@@ -52,7 +52,7 @@ class CameraLocalizer:
     # cozmo_pose: xyzrpy
     # pass in: (object position to cozmo, cozmo position to cozmo)
     def get_world_pose(self, object_pose, cozmo_pose):
-        self.recalculate_transform(cozmo_pose, world_position)
+        self.recalculate_transform(cozmo_pose, self.world_position)
         object_vec = np.transpose(np.array([object_pose[0], object_pose[1], object_pose[2]]))
         world_rot = self.cozmo_origin_rotation + object_pose[5]
 
@@ -64,7 +64,7 @@ class CameraLocalizer:
     # world_pose: xyzrpy
     # pass in: (object position in world, cozmo position to cozmo)
     def get_cozmo_pose(self, world_pose, cozmo_pose):
-        self.recalculate_transform(cozmo_pose, world_position)
+        self.recalculate_transform(cozmo_pose, self.world_position)
         world_vec = np.transpose(np.array([world_pose[0], world_pose[1], world_pose[2]]))
         cozmo_rot = world_pose[5] - self.cozmo_origin_rotation
 
@@ -72,7 +72,6 @@ class CameraLocalizer:
         cozmo_vec -= self.cozmo_origin_location
 
         return cozmo_vec, cozmo_rot
-
 
 
 test = CameraLocalizer()
