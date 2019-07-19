@@ -1,0 +1,6 @@
+soar/
+.idea/
+__pycache__/
+.vs/
+pysoarlib/
+soar/
