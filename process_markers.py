@@ -34,7 +34,6 @@ class Localizer:
 
     def __init__(self):
         self.cam = cv.VideoCapture(1)
-        cv.namedWindow("HD Pro Webcam C920")
         # read camera calibration data
         fs = cv.FileStorage(self.XML_FILENAME, cv.FILE_STORAGE_READ)
         if not fs.isOpened():
@@ -92,7 +91,7 @@ class Localizer:
                         msg = "Angle(rad): " + str(euler_angle[2])
                         cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
-                        cv.imshow("Detect Markers", image_copy)
+                        cv.imshow("HD Pro Webcam C920", image_copy)
                         cv.waitKey(100)
 
                         # return the euler x, y, z coordinates and euler angles
@@ -104,4 +103,5 @@ class Localizer:
             else:
                 return None, None
         else:
-            return None, None
+            print("No camera found!")
+            exit(1)
