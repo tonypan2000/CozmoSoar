@@ -9,7 +9,7 @@ class CameraLocalizer:
     # transform
     def transform(self):
         while True:
-            camera_coord, camera_angle = self.localizer.pose_from_camera()
+            self.camera_coord, self.camera_angle = self.localizer.pose_from_camera()
             #cozmo_pose = self.get_cozmo_pose(self, camera_coord, camera_angle)
             #world_pose = self.get_world_pose(self, cozmo_pose)
             #self.update_robot_pose(self, world_pose)
@@ -25,7 +25,7 @@ class CameraLocalizer:
         pass
 
     # world_pose: xyzrpy
-    def get_cozmo_pose(self, camera_coord, camera_angle):
+    def get_cozmo_pose(self, world_pose):
         # tvecs
         # angle
 

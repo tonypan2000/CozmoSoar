@@ -11,7 +11,7 @@ class Localizer:
     MARKERLENGTH = 0.053
     XML_FILENAME = "calibration_data1.xml"
 
-    def is_rotation_matrix(R):
+    def is_rotation_matrix(self, R):
         Rt = np.transpose(R)
         should_be_identity = np.dot(Rt, R)
         I = np.identity(3, dtype=R.dtype)
@@ -19,8 +19,8 @@ class Localizer:
         return n < 1e-6
 
     # Calculates rotation matrix to euler angles x y z
-    def rotation_matrix_to_euler_angles(R):
-        assert (R.is_rotation_matrix(R))
+    def rotation_matrix_to_euler_angles(self, R):
+        assert (self.is_rotation_matrix(R))
         sy = math.sqrt(R[0, 0] * R[0, 0] + R[1, 0] * R[1, 0])
         singular = sy < 1e-6
         if not singular:
@@ -62,7 +62,7 @@ class Localizer:
                     index1 = i
 
             # pose estimation
-            if not len(marker_ids) == 0:
+            if len(marker_ids) > 1:
                 rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(
                     marker_corners, self.MARKERLENGTH, self.camMatrix, self.distCoeffs)
 
@@ -84,19 +84,22 @@ class Localizer:
 
                     # display annotations (IDs and pose)
                     image_copy = input_image.copy()
-                    if not len(marker_ids) == 0:
-                        cv.putText(image_copy, "Cozmo Pose", (10, 20), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "X(m): " + str(tvecs[index][0][0])
-                        cv.putText(image_copy, msg, (10, 45), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Y(m): " + str(tvecs[index][0][1])
-                        cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Angle(deg): " + str(euler_angle[2])
-                        cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
+                    cv.putText(image_copy, "Cozmo Pose", (10, 20), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                    msg = "X(m): " + str(tvecs[index][0][0])
+                    cv.putText(image_copy, msg, (10, 45), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                    msg = "Y(m): " + str(tvecs[index][0][1])
+                    cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                    msg = "Angle(deg): " + str(euler_angle[2])
+                    cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                    aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
                     cv.imshow("Detect Markers", image_copy)
-                    cv.waitKey(50)
+                    cv.waitKey(100)
 
                     # return the euler x, y, z coordinates and euler angles
                     return tvecs[index][0], euler_angle
                 else:
                     return None, None
+            else:
+                return None, None
+        else:
+            return None, None
