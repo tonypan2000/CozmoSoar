@@ -33,29 +33,12 @@ class Localizer:
             z = 0 / math.pi * 180
         return np.array([x, y, z])
 
-    class Webcam:
-        def __init__(self):
-            self.video_capture = cv.VideoCapture(1)
-            self.current_frame = self.video_capture.read()[1]
-
-        # create thread for capturing images
-        def start(self):
-            Thread(target=self._update_frame, args=()).start()
-
-        def _update_frame(self):
-            while True:
-                self.current_frame = self.video_capture.read()[1]
-
-        # get the current frame
-        def get_current_frame(self):
-            return self.current_frame
-
     def __init__(self):
-        self.cam = self.Webcam()
-        self.cam.start()
+        self.cam = cv.VideoCapture(1)
+        cv.namedWindow("HD Pro Webcam C920")
         # read camera calibration data
         fs = cv.FileStorage(self.XML_FILENAME, cv.FILE_STORAGE_READ)
-        if not self.fs.isOpened():
+        if not fs.isOpened():
             print("Invalid camera file")
             exit(-1)
         self.camMatrix = fs.getNode("camera_matrix").mat()
@@ -83,33 +66,37 @@ class Localizer:
                 rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(
                     marker_corners, self.MARKERLENGTH, self.camMatrix, self.distCoeffs)
 
-                # translate tvecs from relation to camera to a marker
-                tvecs[index][0] -= tvecs[index1][0]
+                # check if tvecs is none
+                if tvecs is not None:
+                    # translate tvecs from relation to camera to a marker
+                    tvecs[index][0] -= tvecs[index1][0]
 
-                # get angle from rotational matrix
-                # convert rotational vector rvecs to rotational matrix
-                # convert euler in relation to a marker
-                rmat = np.empty([3, 3])
-                cv.Rodrigues(rvecs[index][0], rmat)
-                rmat_0 = np.empty([3, 3])
-                cv.Rodrigues(rvecs[index1][0], rmat_0)
-                euler_angle = self.rotation_matrix_to_euler_angles(rmat)
-                euler_angle1 = self.rotation_matrix_to_euler_angles(rmat_0)
-                euler_angle = euler_angle - euler_angle1
+                    # get angle from rotational matrix
+                    # convert rotational vector rvecs to rotational matrix
+                    # convert euler in relation to a marker
+                    rmat = np.empty([3, 3])
+                    cv.Rodrigues(rvecs[index][0], rmat)
+                    rmat_0 = np.empty([3, 3])
+                    cv.Rodrigues(rvecs[index1][0], rmat_0)
+                    euler_angle = self.rotation_matrix_to_euler_angles(rmat)
+                    euler_angle1 = self.rotation_matrix_to_euler_angles(rmat_0)
+                    euler_angle = euler_angle - euler_angle1
 
-                # display annotations (IDs and pose)
-                image_copy = input_image.copy()
-                if not len(marker_ids) == 0:
-                    cv.putText(image_copy, "Cozmo Pose", (10, 20), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                    msg = "X(m): " + str(tvecs[index][0][0])
-                    cv.putText(image_copy, msg, (10, 45), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                    msg = "Y(m): " + str(tvecs[index][0][1])
-                    cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                    msg = "Angle(deg): " + str(euler_angle[2])
-                    cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                    aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
-                cv.imshow("Detect Markers", image_copy)
-                cv.waitKey(50)
+                    # display annotations (IDs and pose)
+                    image_copy = input_image.copy()
+                    if not len(marker_ids) == 0:
+                        cv.putText(image_copy, "Cozmo Pose", (10, 20), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        msg = "X(m): " + str(tvecs[index][0][0])
+                        cv.putText(image_copy, msg, (10, 45), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        msg = "Y(m): " + str(tvecs[index][0][1])
+                        cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        msg = "Angle(deg): " + str(euler_angle[2])
+                        cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
+                    cv.imshow("Detect Markers", image_copy)
+                    cv.waitKey(50)
 
-                # return the euler x, y, z coordinates and euler angles
-                return tvecs[index][0], euler_angle
+                    # return the euler x, y, z coordinates and euler angles
+                    return tvecs[index][0], euler_angle
+                else:
+                    return None, None
