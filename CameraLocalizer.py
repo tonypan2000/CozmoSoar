@@ -26,14 +26,15 @@ class CameraLocalizer:
     # get camera coordinates and angle
     def _get_cam_pos(self):
         while True:
-            print("getting camera position...")
             camera_cozmo_coord, camera_cozmo_ang, camera_cube_coord, camera_cube_ang = self.localizer.pose_from_camera()
             if camera_cozmo_coord is not None and camera_cozmo_ang \
                     is not None and camera_cube_coord is not None and camera_cube_ang is not None:
                 self.world_position = np.array([camera_cozmo_coord[0], camera_cozmo_coord[1], camera_cozmo_coord[2],
                                                 camera_cozmo_ang[0], camera_cozmo_ang[1], camera_cozmo_ang[2]])
+                print("world pos: ", self.world_position)
                 self.camera_cube_position = np.array([camera_cube_coord[0], camera_cube_coord[1], camera_cube_coord[2],
                                                 camera_cube_ang[0], camera_cube_ang[1], camera_cube_ang[2]])
+                print("world pos: ", self.world_position)
 
     # updates: change of basis matricies
     def update_change_of_basis(self):

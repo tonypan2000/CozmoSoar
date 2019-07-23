@@ -36,13 +36,16 @@ class Localizer:
     class WebCam:
         def __init__(self):
             self.camera = cv.VideoCapture(1)
-            self.input_image = None
+            _, self.input_image = self.camera.read()
 
         def start(self):
             Thread(target=self._capture_image, args=()).start()
 
         def _capture_image(self):
-            _, self.input_image = self.camera.read()
+            while True:
+                self.input_image = self.camera.read()[1]
+                cv.imshow("Image", self.input_image)
+                cv.waitKey(100)
 
         def get_image(self):
             return self.input_image
@@ -129,4 +132,4 @@ class Localizer:
                 return None, None, None, None
         else:
             print("No camera found!")
-            exit(1)
+            return None, None, None, None
