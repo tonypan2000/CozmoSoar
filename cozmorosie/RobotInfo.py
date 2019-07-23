@@ -1,5 +1,5 @@
 from math import *
-from pysoarlib import *
+from PySoarLib import *
 
 from .MapInfo import MapInfo
 
