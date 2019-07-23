@@ -2,12 +2,13 @@ import cv2 as cv
 import cv2.aruco as aruco
 import numpy as np
 import math
+from threading import Thread
 
 
 class Localizer:
 
     DICTIONARYID = 0
-    MARKERLENGTH = 0.053  # in meters
+    MARKERLENGTH = 0.0345  # in meters
     XML_FILENAME = "calibration_data1.xml"
 
     def is_rotation_matrix(self, R):
@@ -32,8 +33,24 @@ class Localizer:
             z = 0
         return np.array([x, y, z])
 
+    class WebCam:
+        def __init__(self):
+            self.camera = cv.VideoCapture(1)
+            self.input_image = None
+
+        def start(self):
+            Thread(target=self._capture_image, args=()).start()
+
+        def _capture_image(self):
+            _, self.input_image = self.camera.read()
+
+        def get_image(self):
+            return self.input_image
+
     def __init__(self):
-        self.cam = cv.VideoCapture(1)
+        # self.cam = cv.VideoCapture(1)
+        self.cam = self.WebCam()
+        self.cam.start()
         # read camera calibration data
         fs = cv.FileStorage(self.XML_FILENAME, cv.FILE_STORAGE_READ)
         if not fs.isOpened():
@@ -43,7 +60,8 @@ class Localizer:
         self.distCoeffs = fs.getNode("distortion_coefficients").mat()
 
     def pose_from_camera(self):
-        _, input_image = self.cam.read()
+        # _, input_image = self.cam.read()
+        input_image = self.cam.get_image()
         if input_image is not None:
             # detect markers from the input image
             dictionary = aruco.Dictionary_get(self.DICTIONARYID)
@@ -54,14 +72,17 @@ class Localizer:
                 # find index of center marker
                 index = 0
                 index1 = 0
+                index2 = 0
                 for i in range(len(marker_ids)):
                     if marker_ids[i] == 0:
                         index = i
                     elif marker_ids[i] == 1:
                         index1 = i
+                    elif marker_ids[i] == 2:
+                        index2 = i
 
                 # pose estimation
-                if len(marker_ids) > 1:
+                if len(marker_ids) > 2:
                     rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(
                         marker_corners, self.MARKERLENGTH, self.camMatrix, self.distCoeffs)
 
@@ -74,12 +95,15 @@ class Localizer:
                         # convert rotational vector rvecs to rotational matrix
                         # convert euler in relation to a marker
                         rmat = np.empty([3, 3])
-                        cv.Rodrigues(rvecs[index][0], rmat)
+                        cv.Rodrigues(rvecs[index][0], rmat)  # cozmo vector to matrix
                         rmat_0 = np.empty([3, 3])
-                        cv.Rodrigues(rvecs[index1][0], rmat_0)
-                        euler_angle = self.rotation_matrix_to_euler_angles(rmat)
-                        euler_angle1 = self.rotation_matrix_to_euler_angles(rmat_0)
-                        euler_angle = euler_angle - euler_angle1
+                        cv.Rodrigues(rvecs[index1][0], rmat_0)  # base marker vector to matrix
+                        rmat_2 = np.empty([3, 3])
+                        cv.Rodrigues(rvecs[index2][0], rmat_2)
+                        euler_angle = self.rotation_matrix_to_euler_angles(rmat)  # cozmo relative to camera
+                        euler_angle1 = self.rotation_matrix_to_euler_angles(rmat_0)  # base marker relative to camera
+                        euler_angle = euler_angle - euler_angle1  # cozmo relative to base marker
+                        euler_angle_cube = self.rotation_matrix_to_euler_angles(rmat_2) - euler_angle1  # cube relative
 
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
@@ -94,14 +118,15 @@ class Localizer:
                         cv.imshow("HD Pro Webcam C920", image_copy)
                         cv.waitKey(100)
 
-                        # return the euler x, y, z coordinates and euler angles
-                        return tvecs[index][0], euler_angle
+                        # return the x, y, z coordinates of cozmo in relation to base marker,
+                        # x, y, z coordinates of cube relative to base marker, and euler angles
+                        return tvecs[index][0], euler_angle, tvecs[index2][0], euler_angle_cube
                     else:
-                        return None, None
+                        return None, None, None, None
                 else:
-                    return None, None
+                    return None, None, None, None
             else:
-                return None, None
+                return None, None, None, None
         else:
             print("No camera found!")
             exit(1)
