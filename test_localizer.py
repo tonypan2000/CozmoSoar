@@ -1,4 +1,5 @@
 import cozmo
+import time
 from threading import Thread
 
 
@@ -30,23 +31,26 @@ def cozmo_program(robot: cozmo.robot.Robot):
     camera = CameraLocalizer()
     camera.start()
     print("camera initialized")
+    time.sleep(5)
     cube = None
     while not cube:
-        cube = robot.world.wait_until_observe_num_objects(num=1, object_type=cozmo.objects.LightCube, timeout=10)
+        cube = robot.world.wait_until_observe_num_objects(num=1, object_type=cozmo.objects.LightCube, timeout=60)
         if cube:
             print("found a cube")
-            pitch, yaw, roll = robot.device_gyro.euler_angles
+            _, yaw, _ = robot.device_gyro.euler_angles
             pos = robot.pose.position
-            position = [pos.x, pos.y, pos.z, 0, 0, yaw]
+            position = [pos.x / 1000, pos.y / 1000, pos.z / 1000, 0, 0, yaw]
 
             cube_yaw = cube[0].pose.rotation.angle_z.radians
 
             cube_pos = cube[0].pose.position
 
-            cube_position = [cube_pos.x, cube_pos.y, cube_pos.z, 0, 0, cube_yaw]
-            print("cozmo Pose", position)
-            print("cube pose", cube_position)
-            camera.get_world_pose(cube_position, position)
+            cube_position = [cube_pos.x / 1000, cube_pos.y / 1000, cube_pos.z / 1000, 0, 0, cube_yaw]
+            print("Cozmo in Cozmo coordinates", position)
+            print("Cube in Cozmo coordinates", cube_position)
+            world_vec, world_rot = camera.get_world_pose(cube_position, position)
+            print("Cube in camera position (calculated): ", world_vec)
+            print("Cube in camera rotation (calculated): ", world_rot)
 
 
 cozmo.run_program(cozmo_program)

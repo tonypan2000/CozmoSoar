@@ -27,14 +27,12 @@ class CameraLocalizer:
     def _get_cam_pos(self):
         while True:
             camera_cozmo_coord, camera_cozmo_ang, camera_cube_coord, camera_cube_ang = self.localizer.pose_from_camera()
-            if camera_cozmo_coord is not None and camera_cozmo_ang \
-                    is not None and camera_cube_coord is not None and camera_cube_ang is not None:
+            if camera_cozmo_coord is not None:
                 self.world_position = np.array([camera_cozmo_coord[0], camera_cozmo_coord[1], camera_cozmo_coord[2],
                                                 camera_cozmo_ang[0], camera_cozmo_ang[1], camera_cozmo_ang[2]])
-                print("world pos: ", self.world_position)
+                # print("world pos: ", self.world_position)
                 self.camera_cube_position = np.array([camera_cube_coord[0], camera_cube_coord[1], camera_cube_coord[2],
                                                 camera_cube_ang[0], camera_cube_ang[1], camera_cube_ang[2]])
-                print("world pos: ", self.world_position)
 
     # updates: change of basis matricies
     def update_change_of_basis(self):
@@ -48,8 +46,6 @@ class CameraLocalizer:
     # pass in: (cozmo pose to cozmo, cozmo pose to world)
     # updates: origin location and rotation
     def recalculate_transform(self, cozmo_pose, world_pose):
-        print("Cozmo in Cozmo Coordinates", cozmo_pose)
-        print("Cozmo in camera coordinates", world_pose)
         self.cozmo_origin_rotation = world_pose[5] - cozmo_pose[5]
         self.update_change_of_basis()
 
@@ -62,15 +58,15 @@ class CameraLocalizer:
     # cozmo_pose: xyzrpy
     # pass in: (object position to cozmo, cozmo position to cozmo)
     def get_world_pose(self, object_pose, cozmo_pose):
+        # need to update cozmo in camera coordinates (world_position)
+        print("Cozmo in camera coordinates", self.world_position)
         self.recalculate_transform(cozmo_pose, self.world_position)
         object_vec = np.transpose(np.array([object_pose[0], object_pose[1], object_pose[2]]))
         world_rot = self.cozmo_origin_rotation + object_pose[5]
 
         world_vec = np.matmul(self.change_of_bases_r_to_s, object_vec)
         world_vec += self.cozmo_origin_location
-        print("World Pose: ", world_vec)
-        print("world rotation: ", world_rot)
-        print("camera cube position: ", self.camera_cube_position)
+        print("cube in camera position (actual): ", self.camera_cube_position)
         return world_vec, world_rot
 
     # world_pose: xyzrpy
