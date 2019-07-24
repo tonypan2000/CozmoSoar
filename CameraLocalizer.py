@@ -3,7 +3,8 @@ import numpy as np
 import math
 from threading import Thread
 
-
+# Reverse x axis
+# transposes in functions may need fixing
 class CameraLocalizer:
 
     def __init__(self):
