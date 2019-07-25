@@ -96,8 +96,8 @@ class Localizer:
                         tvecs[index2][0] -= tvecs[index1][0]
 
                         # flip the x axis
-                        tvecs[index][0][0] = -tvecs[index][0][0]
-                        tvecs[index2][0][0] = -tvecs[index2][0][0]
+                        # tvecs[index][0][0] = -tvecs[index][0][0]
+                        # tvecs[index2][0][0] = -tvecs[index2][0][0]
 
                         # get angle from rotational matrix
                         # convert rotational vector rvecs to rotational matrix
@@ -114,8 +114,8 @@ class Localizer:
                         euler_angle_cube = self.rotation_matrix_to_euler_angles(rmat_2) - euler_angle1  # cube relative
 
                         # flip yaw
-                        euler_angle = -euler_angle
-                        euler_angle_cube = -euler_angle_cube
+                        # euler_angle = -euler_angle
+                        # euler_angle_cube = -euler_angle_cube
 
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
@@ -126,7 +126,6 @@ class Localizer:
                         cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         msg = "Angle(rad): " + str(euler_angle[2])
                         cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        cv.putText(image_copy, msg, (10, 120), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         msg = "Cube X(m): " + str(tvecs[index2][0][0])
                         cv.putText(image_copy, msg, (10, 120), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         msg = "Cube Y(m): " + str(tvecs[index2][0][1])
