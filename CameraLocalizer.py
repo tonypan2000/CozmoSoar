@@ -42,14 +42,12 @@ class CameraLocalizer:
         world_pose = self.world_position
         self.cozmo_origin_rotation = world_pose[5] - cozmo_pose[5]
         undo_cozmo_rotation = rotation_matrix(-self.cozmo_origin_rotation)
-
         cozmo_pos = np.array([cozmo_pose[0], cozmo_pose[1], 1])
         origin_to_cozmo = np.matmul(cozmo_pos, undo_cozmo_rotation)
         # cozmo_world_pose - origin_to_cozmo
         cozmo_rotation = rotation_matrix(self.cozmo_origin_rotation)
         cozmo_translation = translation_matrix(world_pose[0] - origin_to_cozmo[0],
                                                world_pose[1] - origin_to_cozmo[1])
-
         self.change_of_bases_r_to_s = np.matmul(cozmo_rotation, cozmo_translation)
         self.change_of_bases_s_to_r = np.linalg.inv(self.change_of_bases_r_to_s)
 

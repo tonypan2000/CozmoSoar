@@ -8,8 +8,8 @@ from threading import Thread
 class Localizer:
 
     DICTIONARYID = 0
-    MARKERLENGTH = 0.0345  # in meters
-    XML_FILENAME = "calibration_data1.xml"
+    MARKERLENGTH = 0.035  # in meters
+    XML_FILENAME = "calibration_data.xml"
 
     def is_rotation_matrix(self, R):
         Rt = np.transpose(R)
@@ -95,6 +95,10 @@ class Localizer:
                         tvecs[index][0] -= tvecs[index1][0]
                         tvecs[index2][0] -= tvecs[index1][0]
 
+                        # flip the x axis
+                        tvecs[index][0][0] = -tvecs[index][0][0]
+                        tvecs[index2][0][0] = -tvecs[index2][0][0]
+
                         # get angle from rotational matrix
                         # convert rotational vector rvecs to rotational matrix
                         # convert euler in relation to a marker
@@ -109,6 +113,10 @@ class Localizer:
                         euler_angle = euler_angle - euler_angle1  # cozmo relative to base marker
                         euler_angle_cube = self.rotation_matrix_to_euler_angles(rmat_2) - euler_angle1  # cube relative
 
+                        # flip yaw
+                        euler_angle = -euler_angle
+                        euler_angle_cube = -euler_angle_cube
+
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
                         cv.putText(image_copy, "Cozmo Pose", (10, 20), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
@@ -118,6 +126,13 @@ class Localizer:
                         cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         msg = "Angle(rad): " + str(euler_angle[2])
                         cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        cv.putText(image_copy, msg, (10, 120), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        msg = "Cube X(m): " + str(tvecs[index2][0][0])
+                        cv.putText(image_copy, msg, (10, 120), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        msg = "Cube Y(m): " + str(tvecs[index2][0][1])
+                        cv.putText(image_copy, msg, (10, 145), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
+                        msg = "Cube Angle(deg): " + str(euler_angle_cube[2])
+                        cv.putText(image_copy, msg, (10, 170), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
                         cv.imshow("HD Pro Webcam C920", image_copy)
                         cv.waitKey(100)
