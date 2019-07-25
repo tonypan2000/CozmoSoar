@@ -31,7 +31,7 @@ def cozmo_program(robot: cozmo.robot.Robot):
     camera = CameraLocalizer()
     camera.start()
     print("camera initialized")
-    time.sleep(5)
+    time.sleep(20)
     cube = None
     while not cube:
         cube = robot.world.wait_until_observe_num_objects(num=1, object_type=cozmo.objects.LightCube, timeout=60)

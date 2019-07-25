@@ -1,7 +1,10 @@
 import process_markers
 import numpy as np
-import math
+from math import cos, sin
 from threading import Thread
+
+rotation_matrix = lambda r: np.array([[cos(r), sin(r), 0], [-sin(r), cos(r), 0], [0, 0, 1]])
+translation_matrix = lambda x, y: np.array([[1, 0, 0], [0, 1, 0], [x, y, 1]])
 
 # Reverse x axis
 # transposes in functions may need fixing
@@ -35,40 +38,43 @@ class CameraLocalizer:
                 self.camera_cube_position = np.array([camera_cube_coord[0], camera_cube_coord[1], camera_cube_coord[2],
                                                 camera_cube_ang[0], camera_cube_ang[1], camera_cube_ang[2]])
 
-    # updates: change of basis matricies
-    def update_change_of_basis(self):
-        a = math.cos(self.cozmo_origin_rotation)
-        b = math.sin(self.cozmo_origin_rotation)
-
-        self.change_of_bases_r_to_s = np.transpose(np.array([[a, b, 0], [-b, a, 0], [0, 0, 1]]))
-        self.change_of_bases_s_to_r = np.linalg.inv(self.change_of_bases_r_to_s)
 
     # pose: xyzrpy
     # pass in: (cozmo pose to cozmo, cozmo pose to world)
     # updates: origin location and rotation
-    def recalculate_transform(self, cozmo_pose, world_pose):
+    def recalculate_transform(self, cozmo_pose):
+        world_pose = self.world_position
         self.cozmo_origin_rotation = world_pose[5] - cozmo_pose[5]
-        self.update_change_of_basis()
+        undo_cozmo_rotation = rotation_matrix(-self.cozmo_origin_rotation)
 
-        cozmo_vec = np.transpose(np.array([cozmo_pose[0], cozmo_pose[1], cozmo_pose[2]]))
-        origin_to_cozmo = np.transpose(np.matmul(self.change_of_bases_r_to_s, cozmo_vec))
-        world_to_cozmo = np.array([world_pose[0], world_pose[1], world_pose[2]])
+        cozmo_pos = np.array([cozmo_pose[0], cozmo_pose[1], 1])
+        origin_to_cozmo = np.matmul(cozmo_pos, undo_cozmo_rotation)
+        # cozmo_world_pose - origin_to_cozmo
+        cozmo_rotation = rotation_matrix(self.cozmo_origin_rotation)
+        cozmo_translation = translation_matrix(world_pose[0] - origin_to_cozmo[0],
+                                               world_pose[1] - origin_to_cozmo[1])
 
-        self.cozmo_origin_location = world_to_cozmo - origin_to_cozmo
+        self.change_of_bases_r_to_s = np.matmul(cozmo_rotation, cozmo_translation)
+        self.change_of_bases_s_to_r = np.linalg.inv(self.change_of_bases_r_to_s)
+
+
 
     # cozmo_pose: xyzrpy
     # pass in: (object position to cozmo, cozmo position to cozmo)
-    def get_world_pose(self, object_pose, cozmo_pose):
+    def get_world_pose(self, object_pose):
         # need to update cozmo in camera coordinates (world_position)
         print("Cozmo in camera coordinates", self.world_position)
-        self.recalculate_transform(cozmo_pose, self.world_position)
-        object_vec = np.transpose(np.array([object_pose[0], object_pose[1], object_pose[2]]))
+        #cozmo_pos_world_hardcoded = np.array([0.16, 0.12, 0, 0, 0, -4.71])
+        # self.recalculate_transform(cozmo_pose, self.world_position)
+        #self.recalculate_transform(cozmo_pose, cozmo_pos_world_hardcoded)
+        object_vec = np.array([object_pose[0], object_pose[1], 1])
+        world_pos = np.matmul(object_vec, self.change_of_bases_r_to_s)
         world_rot = self.cozmo_origin_rotation + object_pose[5]
 
-        world_vec = np.matmul(self.change_of_bases_r_to_s, object_vec)
-        world_vec += self.cozmo_origin_location
+       # world_vec = np.matmul(self.change_of_bases_r_to_s, object_vec)
+       # world_vec += self.cozmo_origin_location
         print("cube in camera position (actual): ", self.camera_cube_position)
-        return world_vec, world_rot
+        return [world_pos[0], world_pos[1], 0, 0, 0, world_rot]
 
     # world_pose: xyzrpy
     # pass in: (object position in world, cozmo position to cozmo)
@@ -82,6 +88,21 @@ class CameraLocalizer:
 
         return cozmo_vec, cozmo_rot
 
+import math
+test = CameraLocalizer()
+test.world_position = np.array([ 0.10, 0.15, 0.0, 0.0, 0.0, math.pi/4 ])
+cozmo_pose = [ -0.05, .05, 0.0, 0.0, 0.0, math.pi/8]
+test.recalculate_transform(cozmo_pose)
 
-# test = CameraLocalizer()
+tests = [
+    [0, 0, 0, 0, 0, 0],
+    [0.1, 0, 0, 0, 0, 0],
+    [0, 0.1, 0, 0, 0, 0],
+    [0.5, 0.5, 0, 0, 0, 0.4],
+]
+
+for t in tests:
+    print("Test: " + str(t))
+    print(test.get_world_pose(t))
+
 # test.start()

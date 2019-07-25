@@ -93,6 +93,7 @@ class Localizer:
                     if tvecs is not None:
                         # translate tvecs from relation to camera to a marker
                         tvecs[index][0] -= tvecs[index1][0]
+                        tvecs[index2][0] -= tvecs[index1][0]
 
                         # get angle from rotational matrix
                         # convert rotational vector rvecs to rotational matrix
