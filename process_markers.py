@@ -44,8 +44,8 @@ class Localizer:
         def _capture_image(self):
             while True:
                 self.input_image = self.camera.read()[1]
-                # cv.imshow("Image", self.input_image)
-                # cv.waitKey(100)
+                cv.imshow("Image", self.input_image)
+                cv.waitKey(50)
 
         def get_image(self):
             return self.input_image
@@ -119,6 +119,10 @@ class Localizer:
                         euler_angle1 = self.rotation_matrix_to_euler_angles(rmat_0)  # base marker relative to camera
                         euler_angle = euler_angle - euler_angle1  # cozmo relative to base marker
                         euler_angle_cube = self.rotation_matrix_to_euler_angles(rmat_2) - euler_angle1  # cube relative
+
+                        # flip yaw
+                        euler_angle = -euler_angle
+                        euler_angle_cube = -euler_angle_cube
 
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
