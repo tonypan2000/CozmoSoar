@@ -102,9 +102,9 @@ class Localizer:
                         tvecs[index][0] -= tvecs[index1][0]
                         tvecs[index2][0] -= tvecs[index1][0]
 
-                        # flip the x axis
-                        # tvecs[index][0][0] = -tvecs[index][0][0]
-                        # tvecs[index2][0][0] = -tvecs[index2][0][0]
+                        # flip y axis
+                        tvecs[index][0][1] = -tvecs[index][0][1]
+                        tvecs[index2][0][1] = -tvecs[index2][0][1]
 
                         # get angle from rotational matrix
                         # convert rotational vector rvecs to rotational matrix
@@ -119,10 +119,6 @@ class Localizer:
                         euler_angle1 = self.rotation_matrix_to_euler_angles(rmat_0)  # base marker relative to camera
                         euler_angle = euler_angle - euler_angle1  # cozmo relative to base marker
                         euler_angle_cube = self.rotation_matrix_to_euler_angles(rmat_2) - euler_angle1  # cube relative
-
-                        # flip yaw
-                        # euler_angle = -euler_angle
-                        # euler_angle_cube = -euler_angle_cube
 
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
