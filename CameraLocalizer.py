@@ -19,6 +19,7 @@ class CameraLocalizer:
         self.cozmo_origin_rotation = 0
         self.change_of_bases_r_to_s = np.zeros([3, 3])
         self.change_of_bases_s_to_r = np.zeros([3, 3])
+        self.ready = False
 
     # start a thread for continuously processing markers
     def start(self):
@@ -31,6 +32,7 @@ class CameraLocalizer:
             if camera_cozmo_coord is not None:
                 self.world_position = np.array([camera_cozmo_coord[0], camera_cozmo_coord[1], camera_cozmo_coord[2],
                                                 camera_cozmo_ang[0], camera_cozmo_ang[1], camera_cozmo_ang[2]])
+                self.ready = True
                 # print("world pos: ", self.world_position)
                 self.camera_cube_position = np.array([camera_cube_coord[0], camera_cube_coord[1], camera_cube_coord[2],
                                                 camera_cube_ang[0], camera_cube_ang[1], camera_cube_ang[2]])

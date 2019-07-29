@@ -44,8 +44,8 @@ class Localizer:
         def _capture_image(self):
             while True:
                 self.input_image = self.camera.read()[1]
-                cv.imshow("Image", self.input_image)
-                cv.waitKey(100)
+                # cv.imshow("Image", self.input_image)
+                # cv.waitKey(100)
 
         def get_image(self):
             return self.input_image
@@ -63,9 +63,16 @@ class Localizer:
         self.distCoeffs = fs.getNode("distortion_coefficients").mat()
 
     def pose_from_camera(self):
-        # _, input_image = self.cam.read()
         input_image = self.cam.get_image()
         if input_image is not None:
+            # undistort image
+            h, w = input_image.shape[:2]
+            newcameramtx, roi = cv.getOptimalNewCameraMatrix(self.camMatrix, self.distCoeffs, (w, h), 1, (w, h))
+            dst = cv.undistort(input_image, self.camMatrix, self.distCoeffs, None, newcameramtx)
+            # crop the image
+            x, y, w, h = roi
+            input_image = dst[y:y + h, x:x + w]
+
             # detect markers from the input image
             dictionary = aruco.Dictionary_get(self.DICTIONARYID)
             parameters = aruco.DetectorParameters_create()
