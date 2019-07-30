@@ -44,8 +44,8 @@ class Localizer:
         def _capture_image(self):
             while True:
                 self.input_image = self.camera.read()[1]
-                cv.imshow("Image", self.input_image)
-                cv.waitKey(50)
+                # cv.imshow("Image", self.input_image)
+                # cv.waitKey(50)
 
         def get_image(self):
             return self.input_image
@@ -140,6 +140,8 @@ class Localizer:
                         msg = "Cube Angle(deg): " + str(euler_angle_cube[2])
                         cv.putText(image_copy, msg, (10, 170), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
+                        aruco.drawAxis(image_copy, self.camMatrix, self.distCoeffs, rvecs[index][0], tvecs[index][0],
+                                       self.MARKERLENGTH * 0.5)
                         cv.imshow("HD Pro Webcam C920", image_copy)
                         cv.waitKey(100)
 

@@ -42,6 +42,11 @@ class CameraLocalizer:
     # updates: origin location and rotation
     def recalculate_transform(self, cozmo_pose):
         world_pose = self.world_position
+        # convert camera pose to cozmo coordinates
+        # x = world_pose[0]
+        # y = world_pose[1]
+        # world_pose[0] = y
+        # world_pose[1] = -x
         self.cozmo_origin_rotation = world_pose[5] - cozmo_pose[5]
         undo_cozmo_rotation = rotation_matrix(-self.cozmo_origin_rotation)
         cozmo_pos = np.array([cozmo_pose[0], cozmo_pose[1], 1])
