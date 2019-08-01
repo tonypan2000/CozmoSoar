@@ -1,6 +1,6 @@
 import process_markers
 import numpy as np
-from math import cos, sin
+from math import cos, sin, pi, sqrt
 from threading import Thread
 
 rotation_matrix = lambda r: np.array([[cos(r), sin(r), 0], [-sin(r), cos(r), 0], [0, 0, 1]])
@@ -42,13 +42,8 @@ class CameraLocalizer:
     # updates: origin location and rotation
     def recalculate_transform(self, cozmo_pose):
         world_pose = self.world_position
-        # convert camera pose to cozmo coordinates
-        # x = world_pose[0]
-        # y = world_pose[1]
-        # world_pose[0] = y
-        # world_pose[1] = -x
         self.cozmo_origin_rotation = world_pose[5] - cozmo_pose[5]
-        undo_cozmo_rotation = rotation_matrix(-self.cozmo_origin_rotation)
+        undo_cozmo_rotation = rotation_matrix(self.cozmo_origin_rotation)
         # cozmo_pos = np.array([cozmo_pose[0], cozmo_pose[1], 1])
         # origin_to_cozmo = np.matmul(cozmo_pos, undo_cozmo_rotation)
         # cozmo_world_pose - origin_to_cozmo
@@ -81,16 +76,11 @@ class CameraLocalizer:
 
 # def test():
 #     cam = CameraLocalizer()
-#     cam.world_position = np.array([-0.1, 0, 0, 0, 0, 0])
-#     cozmo_position = [0, 0, 0.0, 0, 0, 0]
+#     cam.world_position = np.array([-0.1, -0.1, 0, 0, 0, -3 * pi / 4])
+#     cozmo_position = [0, .05, 0.0, 0, 0, 0]
 #     cam.recalculate_transform(cozmo_position)
 #     tests = [
-#         [0, 0, 0, 0, 0, 0],
-#         [0.1, 0, 0, 0, 0, 0],
-#         [0, 0.1, 0, 0, 0, 0],
-#         [0.5, 0.5, 0, 0, 0, 0.4],
-#         [0.13, 0, 0, 0, 0, -0.0764450139050139],
-#         [0, -0.1, 0, 0, 0, 0]
+#         [sqrt(2)/10, 0.05, 0, 0, 0, 0],
 #     ]
 #     for t in tests:
 #         print("Test: " + str(t))
