@@ -70,13 +70,32 @@ class CameraLocalizer:
         print("cube in camera position (actual): ", self.camera_cube_position)
         return [world_to_obj[0], world_to_obj[1], 0, 0, 0, obj_rot]
 
+    def get_world_pose_2(self, object_pose):
+        object_pos = np.array([object_pose[0], object_pose[1], object_pose[2]])
+        object_pos = np.matmul(object_pos, self.change_of_bases_r_to_s)
+        world_to_obj = object_pos + self.change_of_bases_r_to_s
+        obj_rot = object_pose[5] + self.cozmo_origin_rotation
+        print("cube in camera position (actual): ", self.camera_cube_position)
+        return [world_to_obj[0], world_to_obj[1], 0, 0, 0, obj_rot]
+
     # world_pose: xyzrpy
     # pass in: (object position in world, cozmo position to cozmo)
-    def get_cozmo_pose(self, world_pose):
+    def get_cozmo_pose_2(self, world_pose):
         origin_to_object = np.array([world_pose[0] - self.cozmo_origin_location[0],
                                      world_pose[1] - self.cozmo_origin_location[1],
                                      world_pose[2] - self.cozmo_origin_location[2]])
         origin_to_object = np.matmul(origin_to_object, self.change_of_bases_s_to_r)
+        cozmo_rot = world_pose[5] - self.cozmo_origin_rotation
+        return [origin_to_object[0], origin_to_object[1], 0, 0, 0, cozmo_rot]
+
+    # Used cozmo pose to
+    def get_cozmo_pose(self, cozmo_pose, world_pose):
+        cozmo_to_object = np.array([world_pose[0] - self.world_position[0],
+                                    world_pose[1] - self.world_position[1],
+                                    world_pose[2] - self.world_position[2]])
+        cozmo_to_object = np.matmul(cozmo_to_object, self.change_of_bases_s_to_r)
+        cozmo_pos = np.array([cozmo_pose[0], cozmo_pose[1], cozmo_pose[2]])
+        origin_to_object = cozmo_pos + cozmo_to_object
         cozmo_rot = world_pose[5] - self.cozmo_origin_rotation
         return [origin_to_object[0], origin_to_object[1], 0, 0, 0, cozmo_rot]
 
