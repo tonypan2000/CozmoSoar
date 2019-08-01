@@ -44,8 +44,8 @@ class Localizer:
         def _capture_image(self):
             while True:
                 self.input_image = self.camera.read()[1]
-                # cv.imshow("Image", self.input_image)
-                # cv.waitKey(50)
+                cv.imshow("Image", self.input_image)
+                cv.waitKey(50)
 
         def get_image(self):
             return self.input_image
@@ -124,6 +124,16 @@ class Localizer:
                         euler_angle = -euler_angle
                         euler_angle_cube = -euler_angle_cube
 
+                        # fix yaw to -pi to pi
+                        if euler_angle[2] < -math.pi:
+                            euler_angle[2] += math.pi * 2
+                        elif euler_angle[2] > math.pi:
+                            euler_angle[2] -= math.pi * 2
+                        if euler_angle_cube[2] < -math.pi:
+                            euler_angle_cube[2] += math.pi * 2
+                        elif euler_angle_cube[2] > math.pi:
+                            euler_angle_cube[2] -= math.pi * 2
+
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
                         cv.putText(image_copy, "Cozmo Pose", (10, 20), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
@@ -137,11 +147,9 @@ class Localizer:
                         cv.putText(image_copy, msg, (10, 120), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         msg = "Cube Y(m): " + str(tvecs[index2][0][1])
                         cv.putText(image_copy, msg, (10, 145), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Cube Angle(deg): " + str(euler_angle_cube[2])
+                        msg = "Cube Angle(rad): " + str(euler_angle_cube[2])
                         cv.putText(image_copy, msg, (10, 170), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
-                        aruco.drawAxis(image_copy, self.camMatrix, self.distCoeffs, rvecs[index][0], tvecs[index][0],
-                                       self.MARKERLENGTH * 0.5)
                         cv.imshow("HD Pro Webcam C920", image_copy)
                         cv.waitKey(100)
 

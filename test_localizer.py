@@ -21,14 +21,10 @@ def cozmo_program(robot: cozmo.robot.Robot):
         cube_position = [cube[0].pose.position.x / 1000, cube[0].pose.position.y / 1000,
                          cube[0].pose.position.z / 1000, 0, 0, cube_yaw]
         print("Cube in Cozmo coordinates", cube_position)
-        cube_pose_world = camera.get_world_pose(cube_position)
-        cube_pose_world[1] = -cube_pose_world[1]
-        cube_pose_world[5] = -cube_pose_world[5]
+        cube_pose_world = camera.get_world_pose(position, cube_position)
         print("Cube in camera position (calculated): ", cube_pose_world)
-        cube_pose_world[1] = -cube_pose_world[1]
-        cube_pose_world[5] = -cube_pose_world[5]
-        cube_pose_cozmo = camera.get_cozmo_pose(camera.camera_cube_position)
-        print("Cube in Cozmo Coordinates (calculated)", cube_pose_cozmo)
+        # cube_pose_cozmo = camera.get_cozmo_pose(camera.camera_cube_position)
+        # print("Cube in Cozmo Coordinates (calculated)", cube_pose_cozmo)
 
 
 cozmo.run_program(cozmo_program)
