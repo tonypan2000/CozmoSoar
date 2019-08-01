@@ -53,6 +53,11 @@ class CameraLocalizer:
         self.change_of_bases_r_to_s = undo_cozmo_rotation
         self.change_of_bases_s_to_r = np.linalg.inv(self.change_of_bases_r_to_s)
 
+        origin_to_cozmo = np.array([cozmo_pose[0], cozmo_pose[1], cozmo_pose[2]])
+        origin_to_cozmo = np.matmul(origin_to_cozmo, self.change_of_bases_r_to_s)
+        world_pos = np.array([world_pose[0], world_pose[1], world_pose[2]])
+        self.cozmo_origin_location = world_pos - origin_to_cozmo
+
     # cozmo_pose: xyzrpy
     # pass in: (object position to cozmo, cozmo position to cozmo)
     def get_world_pose(self, cozmo_pose, object_pose):
@@ -68,10 +73,12 @@ class CameraLocalizer:
     # world_pose: xyzrpy
     # pass in: (object position in world, cozmo position to cozmo)
     def get_cozmo_pose(self, world_pose):
-        object_vec = np.array([world_pose[0], world_pose[1], 1])
-        cozmo_pos = np.matmul(object_vec, self.change_of_bases_s_to_r)
-        cozmo_rot = self.cozmo_origin_rotation + world_pose[5]
-        return [cozmo_pos[0], cozmo_pos[1], 0, 0, 0, cozmo_rot]
+        origin_to_object = np.array([world_pose[0] - self.cozmo_origin_location[0],
+                                     world_pose[1] - self.cozmo_origin_location[1],
+                                     world_pose[2] - self.cozmo_origin_location[2]])
+        origin_to_object = np.matmul(origin_to_object, self.change_of_bases_s_to_r)
+        cozmo_rot = world_pose[5] - self.cozmo_origin_rotation
+        return [origin_to_object[0], origin_to_object[1], 0, 0, 0, cozmo_rot]
 
 
 # def test():
