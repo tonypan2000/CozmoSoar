@@ -541,6 +541,9 @@ class CozmoSoar(psl.AgentConnector):
         :param input_link: The Soar WME corresponding to the input link of the agent.
         :return: None
         """
+
+        # TODO (Tony): camera localizer (static inputs include xyzr)
+
         # First, we handle inputs which will always be present
         for input_name in self.static_inputs.keys():
             new_val = self.static_inputs[input_name]
@@ -559,6 +562,7 @@ class CozmoSoar(psl.AgentConnector):
                 self.WMEs[input_name] = new_wme
                 new_wme.add_to_wm(input_link)
             else:
+                # TODO (Tony): if input key is xyzr, update those with camera localizer
                 wme.set_value(new_val)
                 wme.update_wm()
 
