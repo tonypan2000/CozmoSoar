@@ -1,6 +1,6 @@
 import process_markers
 import numpy as np
-from math import cos, sin, pi, sqrt
+from math import cos, sin, pi
 from threading import Thread
 
 rotation_matrix = lambda r: np.array([[cos(r), sin(r), 0], [-sin(r), cos(r), 0], [0, 0, 1]])
@@ -27,14 +27,11 @@ class CameraLocalizer:
     # get camera coordinates and angle
     def _get_cam_pos(self):
         while True:
-            camera_cozmo_coord, camera_cozmo_ang, camera_cube_coord, camera_cube_ang = self.localizer.pose_from_camera()
+            camera_cozmo_coord, camera_cozmo_ang = self.localizer.pose_from_camera()
             if camera_cozmo_coord is not None:
                 self.world_position = np.array([camera_cozmo_coord[0], camera_cozmo_coord[1], camera_cozmo_coord[2],
                                                 camera_cozmo_ang[0], camera_cozmo_ang[1], camera_cozmo_ang[2]])
                 self.ready = True
-                # print("world pos: ", self.world_position)
-                self.camera_cube_position = np.array([camera_cube_coord[0], camera_cube_coord[1], camera_cube_coord[2],
-                                                camera_cube_ang[0], camera_cube_ang[1], camera_cube_ang[2]])
 
     # pose: xyzrpy
     # pass in: (cozmo pose to cozmo)
@@ -58,10 +55,10 @@ class CameraLocalizer:
         obj_rot = object_pose[5] + self.cozmo_origin_rotation
         print("cube in camera position (actual): ", self.camera_cube_position)
         # fix yaw to -pi to pi
-        if obj_rot < -pi:
-            obj_rot += pi * 2
-        elif obj_rot > pi:
-            obj_rot -= pi * 2
+        if obj_rot < -180:
+            obj_rot += 360
+        elif obj_rot > 180:
+            obj_rot -= 360
         return [world_to_obj[0], world_to_obj[1], 0, 0, 0, obj_rot]
 
     # world_pose: xyzrpy
@@ -73,8 +70,8 @@ class CameraLocalizer:
         origin_to_object = np.matmul(origin_to_object, self.change_of_bases_s_to_r)
         cozmo_rot = world_pose[5] - self.cozmo_origin_rotation
         # fix yaw to -pi to pi
-        if cozmo_rot < -pi:
-            cozmo_rot += pi * 2
-        elif cozmo_rot > pi:
-            cozmo_rot -= pi * 2
+        if cozmo_rot < -180:
+            cozmo_rot += 360
+        elif cozmo_rot > 180:
+            cozmo_rot -= 360
         return [origin_to_object[0], origin_to_object[1], 0, 0, 0, cozmo_rot]

@@ -8,7 +8,7 @@ from threading import Thread
 class Localizer:
 
     DICTIONARYID = 0
-    MARKERLENGTH = 0.035  # in meters
+    MARKERLENGTH = 35  # in millimeters
     XML_FILENAME = "calibration_data.xml"
 
     def is_rotation_matrix(self, r):
@@ -24,12 +24,12 @@ class Localizer:
         sy = math.sqrt(r[0, 0] * r[0, 0] + r[1, 0] * r[1, 0])
         singular = sy < 1e-6
         if not singular:
-            x = math.atan2(r[2, 1], r[2, 2])
-            y = math.atan2(-r[2, 0], sy)
-            z = math.atan2(r[1, 0], r[0, 0])
+            x = math.atan2(r[2, 1], r[2, 2]) / math.pi * 180
+            y = math.atan2(-r[2, 0], sy) / math.pi * 180
+            z = math.atan2(r[1, 0], r[0, 0]) / math.pi * 180
         else:
-            x = math.atan2(-r[1, 2], r[1, 1])
-            y = math.atan2(-r[2, 0], sy)
+            x = math.atan2(-r[1, 2], r[1, 1]) / math.pi * 180
+            y = math.atan2(-r[2, 0], sy) / math.pi * 180
             z = 0
         return np.array([x, y, z])
 
@@ -116,19 +116,19 @@ class Localizer:
                         euler_angle = -euler_angle
 
                         # fix yaw to -pi to pi
-                        if euler_angle[2] < -math.pi:
-                            euler_angle[2] += math.pi * 2
-                        elif euler_angle[2] > math.pi:
-                            euler_angle[2] -= math.pi * 2
+                        if euler_angle[2] < -180:
+                            euler_angle[2] += 360
+                        elif euler_angle[2] > 180:
+                            euler_angle[2] -= 360
 
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
                         cv.putText(image_copy, "Cozmo Pose", (10, 20), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "X(m): " + str(tvecs[index][0][0])
+                        msg = "X(mm): " + str(tvecs[index][0][0])
                         cv.putText(image_copy, msg, (10, 45), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Y(m): " + str(tvecs[index][0][1])
+                        msg = "Y(mm): " + str(tvecs[index][0][1])
                         cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Angle(rad): " + str(euler_angle[2])
+                        msg = "Angle(deg): " + str(euler_angle[2])
                         cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
                         cv.imshow("HD Pro Webcam C920", image_copy)

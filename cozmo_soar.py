@@ -101,6 +101,13 @@ class CozmoSoar(psl.AgentConnector):
             "set-backpack-lights": self.__handle_set_backpack_lights
         }
 
+        # camera localizer
+        from CameraLocalizer import CameraLocalizer
+        self.localizer = CameraLocalizer()
+        self.localizer.start()
+        while not self.localizer.ready:
+            sleep(0.1)
+
     def on_output_event(self, command_name: str, root_id: sml.Identifier):
         """
         Handle commands Soar outputs by initiating the appropriate Soar action.
@@ -543,6 +550,10 @@ class CozmoSoar(psl.AgentConnector):
         """
 
         # TODO (Tony): camera localizer (static inputs include xyzr)
+        # update transformation
+        cozmo_position = [self.r.pose.position.x, self.r.pose.position.y, self.r.pose.position.z,
+                          0, 0, self.r.pose.rotation.angle_z.degrees]
+        self.localizer.recalculate_transform(cozmo_position)
 
         # First, we handle inputs which will always be present
         for input_name in self.static_inputs.keys():
@@ -562,7 +573,6 @@ class CozmoSoar(psl.AgentConnector):
                 self.WMEs[input_name] = new_wme
                 new_wme.add_to_wm(input_link)
             else:
-                # TODO (Tony): if input key is xyzr, update those with camera localizer
                 wme.set_value(new_val)
                 wme.update_wm()
 
@@ -661,15 +671,20 @@ class CozmoSoar(psl.AgentConnector):
         :param obj_wme: sml identifier at the root of the object sub-tree
         :return: None
         """
+        # TODO (Tony): save this data in self to retrieve when get world pose or get cozmo pose is called
+        # get the world pose of the object
+        obj_position = [obj.pose.position.x, obj.pose.position.y,
+                         obj.pose.position.z, 0, 0, obj.pose.rotation.angle_z.degrees]
+        obj_pose_world = self.localizer.get_world_pose(obj_position)
         obj_input_dict = {
             "object-id": obj.object_id,
             "descriptive-name": obj.descriptive_name,
             "liftable": int(obj.pickupable),
             "pose": {
-                "rot": lambda: obj.pose.rotation.angle_z.degrees,
-                "x": lambda: obj.pose.position.x,
-                "y": lambda: obj.pose.position.y,
-                "z": lambda: obj.pose.position.z,
+                "rot": lambda: obj_pose_world[5],
+                "x": lambda: obj_pose_world[0],
+                "y": lambda: obj_pose_world[1],
+                "z": lambda: obj_pose_world[2],
             }
         }
         if isinstance(obj, cozmo.objects.LightCube):
