@@ -1,0 +1,24 @@
+# Adds the ^is-reachable1 reachable1 predicate
+sp {anystate*apply*attend-to-scene-change*attend-to-different-reachable-predicate*add*predicate
+   (state <s> ^operator <o>)
+   (<o> ^name attend-to-scene-change
+        ^change <c>)
+   (<c> ^type different-reachable-predicate
+        ^object-info.wm-obj.predicates <wm-preds>
+        ^is-reachable1 <reachable>)
+-->
+   (<wm-preds> ^is-reachable1 <reachable>)
+}
+
+sp {anystate*apply*attend-to-scene-change*attend-to-different-reachable-predicate*remove*predicate
+   (state <s> ^operator <o>)
+   (<o> ^name attend-to-scene-change
+        ^change <c>)
+   (<c> ^type different-reachable-predicate
+        ^object-info.wm-obj.predicates <wm-preds>
+        ^is-reachable1 <reachable>)
+   (<wm-preds> ^is-reachable1 { <old-reach> <> <reachable> })
+-->
+   (<wm-preds> ^is-reachable1 <old-reach> -)
+}
+   

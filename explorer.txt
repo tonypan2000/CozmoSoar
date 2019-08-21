@@ -1,0 +1,96 @@
+sp {p*init
+	(state <s> ^superstate nil)
+	-(<s> ^name explorer)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name init)
+}
+
+sp {a*init
+	(<s> ^io.output-link <out>)
+	(<s> ^operator.name init)
+-->
+	(<s> ^name explorer
+		 ^stage PU)
+	(<out> ^move-head <h>
+         	^move-lift <l>)
+    (<h> ^angle 0)
+    (<l> ^height 0)
+}
+
+sp {p*PU
+	(<s> ^stage PU
+		 ^io.input-link <in>)
+	(<in> ^object.object-id <id>)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name pick-up-block
+		 ^idnum <id>)
+}
+
+sp {a*PU
+	(<s> ^stage PU
+		 ^io.output-link <out>
+		 ^io.input-link.pose <pose>
+		 ^operator <o>)
+	(<pose> ^x <x>
+			^y <y>
+			^z <z>
+			^rot <rot>)
+	(<o> ^name pick-up-block
+		 ^idnum <id>)
+-->
+	(<out> ^pick-up-object.object-id <id>)
+	(<s> ^stage PU -)
+	(<s> ^stage spin)
+	(<s> ^start-pose <sp>)
+	(<sp> ^x <x>
+		  ^y <y>
+		  ^z <z>
+		  ^rot <rot>)
+}
+
+sp {p*spin
+	(<s> ^stage spin)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name spin)
+}
+
+sp {a*spin
+	(<s> ^operator <o>
+		 ^io.output-link <out>
+		 ^io.input-link <in>)
+	(<o> ^name spin)
+	(<in> ^carrying-block 1)
+-->
+	(<out> ^turn-in-place <tp>)
+	(<tp> ^angle 1800
+		  ^speed 90)
+	(<s> ^stage spin -)
+	(<s> ^stage return)
+}
+
+sp {p*return
+	(<s> ^stage return)
+-->
+	(<s> ^operator <o> +)
+	(<o> ^name return)
+}
+
+sp {a*return
+	(<s> ^operator <o>
+		 ^io.output-link <out>)
+	(<o> ^name return)
+-->
+	(<out> ^go-to-pose <gtp>)
+	(<gtp> ^x 0
+			^y 0
+			^orientation 0
+			^relative false)
+
+}
+
+
+
+
