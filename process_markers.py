@@ -82,17 +82,14 @@ class Localizer:
                 # find index of center marker
                 index = 0
                 index1 = 0
-                index2 = 0
                 for i in range(len(marker_ids)):
                     if marker_ids[i] == 0:
                         index = i
                     elif marker_ids[i] == 1:
                         index1 = i
-                    elif marker_ids[i] == 2:
-                        index2 = i
 
                 # pose estimation
-                if len(marker_ids) > 2:
+                if len(marker_ids) > 1:
                     rvecs, tvecs, _ = aruco.estimatePoseSingleMarkers(
                         marker_corners, self.MARKERLENGTH, self.camMatrix, self.distCoeffs)
 
@@ -100,11 +97,9 @@ class Localizer:
                     if tvecs is not None:
                         # translate tvecs from relation to camera to a marker
                         tvecs[index][0] -= tvecs[index1][0]
-                        tvecs[index2][0] -= tvecs[index1][0]
 
                         # flip y axis
                         tvecs[index][0][1] = -tvecs[index][0][1]
-                        tvecs[index2][0][1] = -tvecs[index2][0][1]
 
                         # get angle from rotational matrix
                         # convert rotational vector rvecs to rotational matrix
@@ -113,26 +108,18 @@ class Localizer:
                         cv.Rodrigues(rvecs[index][0], rmat)  # cozmo vector to matrix
                         rmat_0 = np.empty([3, 3])
                         cv.Rodrigues(rvecs[index1][0], rmat_0)  # base marker vector to matrix
-                        rmat_2 = np.empty([3, 3])
-                        cv.Rodrigues(rvecs[index2][0], rmat_2)
                         euler_angle = self.rotation_matrix_to_euler_angles(rmat)  # cozmo relative to camera
                         euler_angle1 = self.rotation_matrix_to_euler_angles(rmat_0)  # base marker relative to camera
                         euler_angle = euler_angle - euler_angle1  # cozmo relative to base marker
-                        euler_angle_cube = self.rotation_matrix_to_euler_angles(rmat_2) - euler_angle1  # cube relative
 
                         # flip yaw
                         euler_angle = -euler_angle
-                        euler_angle_cube = -euler_angle_cube
 
                         # fix yaw to -pi to pi
                         if euler_angle[2] < -math.pi:
                             euler_angle[2] += math.pi * 2
                         elif euler_angle[2] > math.pi:
                             euler_angle[2] -= math.pi * 2
-                        if euler_angle_cube[2] < -math.pi:
-                            euler_angle_cube[2] += math.pi * 2
-                        elif euler_angle_cube[2] > math.pi:
-                            euler_angle_cube[2] -= math.pi * 2
 
                         # display annotations (IDs and pose)
                         image_copy = input_image.copy()
@@ -143,19 +130,12 @@ class Localizer:
                         cv.putText(image_copy, msg, (10, 70), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         msg = "Angle(rad): " + str(euler_angle[2])
                         cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Cube X(m): " + str(tvecs[index2][0][0])
-                        cv.putText(image_copy, msg, (10, 120), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Cube Y(m): " + str(tvecs[index2][0][1])
-                        cv.putText(image_copy, msg, (10, 145), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
-                        msg = "Cube Angle(rad): " + str(euler_angle_cube[2])
-                        cv.putText(image_copy, msg, (10, 170), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
                         cv.imshow("HD Pro Webcam C920", image_copy)
                         cv.waitKey(100)
 
                         # return the x, y, z coordinates of cozmo in relation to base marker,
-                        # x, y, z coordinates of cube relative to base marker, and euler angles
-                        return tvecs[index][0], euler_angle, tvecs[index2][0], euler_angle_cube
+                        return tvecs[index][0], euler_angle
                     else:
                         return None, None, None, None
                 else:
