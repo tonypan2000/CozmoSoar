@@ -44,15 +44,15 @@ class Localizer:
         def _capture_image(self):
             while True:
                 self.input_image = self.camera.read()[1]
-                cv.imshow("Image", self.input_image)
-                cv.waitKey(50)
+                # cv.imshow("Image", self.input_image)
+                # cv.waitKey(50)
 
         def get_image(self):
             return self.input_image
 
     def __init__(self):
         # self.cam = cv.VideoCapture(1)
-        self.cam = self.WebCam()
+        self.cam = self.WebCam(1)
         self.cam.start()
         # read camera calibration data
         fs = cv.FileStorage(self.XML_FILENAME, cv.FILE_STORAGE_READ)
@@ -132,16 +132,16 @@ class Localizer:
                         cv.putText(image_copy, msg, (10, 95), cv.FONT_HERSHEY_PLAIN, 1, (255, 0, 0, 0))
                         aruco.drawDetectedMarkers(image_copy, marker_corners, marker_ids)
                         cv.imshow("HD Pro Webcam C920", image_copy)
-                        cv.waitKey(100)
+                        cv.waitKey(200)
 
                         # return the x, y, z coordinates of cozmo in relation to base marker,
                         return tvecs[index][0], euler_angle
                     else:
-                        return None, None, None, None
+                        return None, None
                 else:
-                    return None, None, None, None
+                    return None, None
             else:
-                return None, None, None, None
+                return None, None
         else:
             print("No camera found!")
-            return None, None, None, None
+            return None, None
