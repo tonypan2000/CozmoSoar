@@ -35,7 +35,7 @@ class Localizer:
 
     class WebCam:
         def __init__(self):
-            self.camera = cv.VideoCapture(1)
+            self.camera = cv.VideoCapture(0)
             _, self.input_image = self.camera.read()
 
         def start(self):
@@ -44,15 +44,15 @@ class Localizer:
         def _capture_image(self):
             while True:
                 self.input_image = self.camera.read()[1]
-                # cv.imshow("Image", self.input_image)
-                # cv.waitKey(50)
+                cv.imshow("Image", self.input_image)
+                cv.waitKey(50)
 
         def get_image(self):
             return self.input_image
 
     def __init__(self):
         # self.cam = cv.VideoCapture(1)
-        self.cam = self.WebCam(1)
+        self.cam = self.WebCam()
         self.cam.start()
         # read camera calibration data
         fs = cv.FileStorage(self.XML_FILENAME, cv.FILE_STORAGE_READ)
