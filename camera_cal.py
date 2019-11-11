@@ -23,6 +23,7 @@ USAGE
 
 import numpy as np
 import cv2
+import PyCapture2
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 
@@ -52,14 +53,19 @@ if __name__ == '__main__':
     # create main window
     cv2.namedWindow("camera", 0)
 
-    camera = cv2.VideoCapture(0)
+    bus = PyCapture2.BusManager()
+    numCams = bus.getNumOfCameras()
+    camera = PyCapture2.Camera()
+    uid = bus.getCameraFromIndex(0)
+    camera.connect(uid)
+    camera.startCapture()
 
     frame_count = 0
     while True:
         ch = 0xFF & cv2.waitKey(10)
         if True:
             # convert Bayer GB to RGB for display
-            ret, image = camera.read()
+            image = camera.retrieveBuffer()
             rgb_frame = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             # convert Bayer BG to Grayscale for corner detections
             grey_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_BGR2GRAY)
@@ -100,7 +106,7 @@ if __name__ == '__main__':
     # Use new calibration to undistort camera feed, exit on ESC
     new_camera_matrix, roi = cv2.getOptimalNewCameraMatrix(camera_matrix, dist_coefs, (w, h), 1, (w, h))
     while True:
-        ret, image = camera.read()
+        image = camera.retrieveBuffer()
         rgb_frame = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
         undistorted = cv2.undistort(rgb_frame, camera_matrix, dist_coefs, None, new_camera_matrix)
         cv2.imshow('camera', undistorted)
