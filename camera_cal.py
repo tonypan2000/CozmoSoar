@@ -66,6 +66,8 @@ if __name__ == '__main__':
         if True:
             # convert Bayer GB to RGB for display
             image = camera.retrieveBuffer()
+            row_bytes = float(len(image.getData())) / float(image.getRows())
+            image = np.array(image.getData(), dtype="uint8").reshape((image.getRows(), image.getCols()))
             rgb_frame = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
             # convert Bayer BG to Grayscale for corner detections
             grey_frame = cv2.cvtColor(rgb_frame, cv2.COLOR_BGR2GRAY)
